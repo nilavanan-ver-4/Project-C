@@ -5,10 +5,12 @@ import { parse } from 'node-html-parser';
 import dicts from '../src/i18n/dicts.js';
 import { LANGS, SITE_URL } from '../src/config.js';
 import { translate, regionName, parseAttrSpec, pageMeta } from '../src/i18n/shared.js';
+import { jsonLdScript } from '../src/seo/jsonld.js';
+import { llmsTxt, llmsFullTxt, robotsTxt } from './lib/geo.mjs';
 
 const DIST = new URL('../dist/', import.meta.url);
 const pages = ['/'];
-if (existsSync(new URL('regions/', DIST))) for (const d of readdirSync(new URL('regions/', DIST))) pages.push(`/regions/${d}/`);
+for (const dir of ['regions', 'products']) if (existsSync(new URL(`${dir}/`, DIST))) for (const d of readdirSync(new URL(`${dir}/`, DIST))) pages.push(`/${dir}/${d}/`);
 
 const fileFor = (path) => new URL(`.${path}index.html`, DIST);
 const prefix = (code) => (code === 'en' ? '' : `/${code}`);
@@ -19,6 +21,7 @@ function render(source, lang, path) {
   const root = parse(source, { comment: true, blockTextElements: { script: true, style: true, pre: true } });
   const html = root.querySelector('html');
   const region = html.getAttribute('data-region') || undefined;
+  const product = html.getAttribute('data-product') || undefined;
   html.setAttribute('lang', meta.hreflang === 'zh-Hans' ? 'zh-Hans' : meta.code);
   html.setAttribute('dir', meta.dir);
 
@@ -32,7 +35,7 @@ function render(source, lang, path) {
   }
   for (const el of root.querySelectorAll('[data-country]')) el.set_content(regionName(lang, el.getAttribute('data-country')));
 
-  const { title, desc } = pageMeta(dict, en, region);
+  const { title, desc } = pageMeta(dict, en, region, product);
   root.querySelector('title')?.set_content(title.replace(/&/g, '&amp;'));
   const setMeta = (sel, v) => root.querySelector(sel)?.setAttribute('content', v);
   setMeta('meta[name="description"]', desc);
@@ -50,9 +53,15 @@ function render(source, lang, path) {
       a.setAttribute('href', `/${lang}${h}`);
     }
   }
+  // alternate locales for Open Graph
+  const head = root.querySelector('head');
+  for (const l of LANGS) if (l.code !== lang) head.insertAdjacentHTML('beforeend', `<meta property="og:locale:alternate" content="${l.locale}" />`);
+  const m = path.match(/^\/(regions|products)\/([^/]+)\/$/);
+  const ld = jsonLdScript({ lang, dict, en, kind: m ? (m[1] === 'regions' ? 'region' : 'product') : 'home', slug: m?.[2] });
+  head.insertAdjacentHTML('beforeend', ld);
   const opt = root.querySelector(`#langSelect option[value="${lang}"]`);
   if (opt) { root.querySelectorAll('#langSelect option').forEach((o) => o.removeAttribute('selected')); opt.setAttribute('selected', ''); }
-  return root.toString();
+  return root.toString().replace('<!--JSONLD-->', '');
 }
 
 for (const path of pages) {
@@ -67,8 +76,10 @@ for (const path of pages) {
 
 const urls = pages.flatMap((path) => LANGS.map((l) => {
   const alts = LANGS.map((a) => `    <xhtml:link rel="alternate" hreflang="${a.hreflang}" href="${SITE_URL}${prefix(a.code)}${path}"/>`).join('\n') + `\n    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE_URL}${path}"/>`;
-  return `  <url>\n    <loc>${SITE_URL}${prefix(l.code)}${path}</loc>\n${alts}\n    <changefreq>${path === '/' ? 'weekly' : 'monthly'}</changefreq>\n    <priority>${path === '/' ? '1.0' : '0.7'}</priority>\n  </url>`;
+  return `  <url>\n    <loc>${SITE_URL}${prefix(l.code)}${path}</loc>\n${alts}\n    <lastmod>${new Date().toISOString().slice(0, 10)}</lastmod>\n    <changefreq>${path === '/' ? 'weekly' : 'monthly'}</changefreq>\n    <priority>${path === '/' ? '1.0' : '0.7'}</priority>\n  </url>`;
 }));
 writeFileSync(new URL('sitemap.xml', DIST), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join('\n')}\n</urlset>\n`);
-writeFileSync(new URL('robots.txt', DIST), `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
+writeFileSync(new URL('robots.txt', DIST), robotsTxt());
+writeFileSync(new URL('llms.txt', DIST), llmsTxt());
+writeFileSync(new URL('llms-full.txt', DIST), llmsFullTxt());
 console.log(`Prerendered ${pages.length} pages × ${LANGS.length} languages, sitemap + robots written.`);

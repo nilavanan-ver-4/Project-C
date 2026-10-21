@@ -5,12 +5,13 @@
   "description": "Proj-C — premium global seafood export brand experience (WebGL, multilingual, B2B RFQ).",
   "type": "module",
   "scripts": {
-    "gen": "node scripts/gen-regions.mjs",
+    "gen": "node scripts/gen-regions.mjs && node scripts/gen-products.mjs",
     "predev": "npm run gen",
     "dev": "vite",
     "prebuild": "npm run gen",
     "build": "vite build && node scripts/prerender.mjs",
     "preview": "vite preview",
+    "seo": "node scripts/seo-check.mjs",
     "optimize:models": "node scripts/optimize-models.mjs"
   },
   "dependencies": {

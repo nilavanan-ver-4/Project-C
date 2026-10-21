@@ -189,7 +189,8 @@ export function initRfq() {
     const a = e.target.closest('[data-prefill]');
     if (!a) return;
     const msg = $('#msg');
-    const line = a.dataset.prefill === 'certs' ? tEn('q.cta') : tEn('fa.book');
+    const keys = { certs: 'q.cta', tour: 'fa.book', catalogue: 'dl.catalogue', specs: 'dl.specs', brand: 'dl.brand', press: 'media.pressCta' };
+    const line = tEn(keys[a.dataset.prefill] || 'q.cta');
     if (!msg.value.includes(line)) msg.value = (msg.value ? msg.value + '\n' : '') + line;
   });
   const params = new URLSearchParams(location.search);

@@ -24,6 +24,7 @@ for (const r of REGIONS) {
   <title>${title}</title>
   <meta name="description" content="${desc}" />
   <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="author" content="Proj-C" />
   <link rel="canonical" href="%VITE_SITE_URL%${path}" />
   ${hreflangLinks(path)}
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -37,12 +38,7 @@ for (const r of REGIONS) {
   <meta name="twitter:title" content="${title}" />
   <meta name="twitter:description" content="${desc}" />
   <script>document.documentElement.classList.add('js');</script>
-  <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
-    {"@type":"ListItem","position":1,"name":"Proj-C","item":"%VITE_SITE_URL%/"},
-    {"@type":"ListItem","position":2,"name":"Global reach","item":"%VITE_SITE_URL%/#reach"},
-    {"@type":"ListItem","position":3,"name":"${name}","item":"%VITE_SITE_URL%${path}"}]}
-  </script>
+<!--JSONLD-->
 </head>
 <body class="region-page">
   ${sprite}

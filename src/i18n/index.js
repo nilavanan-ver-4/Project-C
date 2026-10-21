@@ -81,7 +81,7 @@ function applyHead() {
   const html = document.documentElement;
   html.lang = meta.hreflang === 'zh-Hans' ? 'zh-Hans' : meta.code;
   html.dir = meta.dir;
-  const { title, desc } = pageMeta(cache[current] || en, en, html.dataset.region);
+  const { title, desc } = pageMeta(cache[current] || en, en, html.dataset.region, html.dataset.product);
   document.title = title;
   const set = (sel, v) => document.querySelector(sel)?.setAttribute('content', v);
   set('meta[name="description"]', desc);

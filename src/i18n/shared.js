@@ -43,8 +43,12 @@ export function parseAttrSpec(spec) {
 }
 
 /** Title + description for the home page or (when `region` is set) a region page. */
-export function pageMeta(dict, fallback, region) {
+export function pageMeta(dict, fallback, region, product) {
   const tr = (k, v) => translate(dict, fallback, k, v);
+  if (product) {
+    const long = `${tr(`p.${product}.name`)} — ${tr(`p.${product}.tag`)} | Proj-C`;
+    return { title: long.length > 65 ? `${tr(`p.${product}.name`)} | Proj-C` : long, desc: tr(`p.${product}.desc`) };
+  }
   if (!region) return { title: tr('meta.title'), desc: tr('meta.desc') };
   return {
     title: `${tr(`reg.${region}`)} — ${tr('hero.eyebrow')} | Proj-C`,

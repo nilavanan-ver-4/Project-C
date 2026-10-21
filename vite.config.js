@@ -4,14 +4,16 @@ import { readdirSync, existsSync } from 'node:fs';
 
 const root = import.meta.dirname;
 
-// Every generated region page is an extra HTML entry (regions/<slug>/index.html)
-const regionInputs = existsSync(resolve(root, 'regions'))
-  ? Object.fromEntries(
-      readdirSync(resolve(root, 'regions'), { withFileTypes: true })
-        .filter((d) => d.isDirectory())
-        .map((d) => [`region-${d.name}`, resolve(root, 'regions', d.name, 'index.html')])
-    )
-  : {};
+// Every generated region / product page is an extra HTML entry (regions|products/<slug>/index.html)
+const pageInputs = (dir, prefix) =>
+  existsSync(resolve(root, dir))
+    ? Object.fromEntries(
+        readdirSync(resolve(root, dir), { withFileTypes: true })
+          .filter((d) => d.isDirectory())
+          .map((d) => [`${prefix}-${d.name}`, resolve(root, dir, d.name, 'index.html')])
+      )
+    : {};
+const regionInputs = { ...pageInputs('regions', 'region'), ...pageInputs('products', 'product') };
 
 // In dev there are no prerendered /es/, /ar/… folders — serve the same page and let the runtime switch language.
 const langRewrite = () => ({

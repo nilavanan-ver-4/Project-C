@@ -15,6 +15,7 @@ import { initI18n } from './i18n/index.js';
 import { initCatalogue, catalogue } from './forms/catalogue.js';
 import { initReach, reach } from './forms/reach.js';
 import { initRfq } from './forms/rfq.js';
+import { initMedia } from './core/media.js';
 
 const $ = (s) => document.querySelector(s);
 const html = document.documentElement;
@@ -32,6 +33,7 @@ async function boot() {
   initCatalogue();
   initReach();
   initRfq();
+  initMedia();
   initCursor(); initTilt(); initClickFx(); initMagnetic();
   loader.set(0.25);
 
